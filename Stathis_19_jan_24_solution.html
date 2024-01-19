@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<!-- saved from url=(0047)https://cortex.mlx.institute/module/72/lesson/9 -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><link rel="stylesheet" href="./Stathis_19_jan_24_solution_files/inter.css"><link rel="stylesheet" href="./Stathis_19_jan_24_solution_files/editor.main.css"><link rel="stylesheet" href="./Stathis_19_jan_24_solution_files/pdf_viewer.min.css" integrity="sha512-XYRLVU5scloPRU41FDEe7++i3JZRdR0jwy48SVx1fPptEhzQgMp/gagTyNwZXoNRhNH/A3Aj3emakRatx2OjbQ==" crossorigin="anonymous" referrerpolicy="no-referrer"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#000000"><title>Cortex</title><script defer="defer" src="./Stathis_19_jan_24_solution_files/main.aaa90920.js"></script><link href="./Stathis_19_jan_24_solution_files/main.498cb4ff.css" rel="stylesheet"><style data-styled="active" data-styled-version="6.0.7"></style></head><body><noscript>You need to enable JavaScript to run this app.</noscript><div id="root"><div class="sc-jWGnnD kNmxvB"><div class="sc-dGrQGE lljZjD"><a href="https://cortex.mlx.institute/" class="sc-jeNXex dVJsvL"><p class="sc-bcPKhP sc-evHSSy kESoAj fiyLmR">Cortex</p></a><div class="sc-PtJch gEaAOi" style="margin-left: auto; padding-right: 0px;"><a href="https://apps.mlx.institute/" class="sc-byiLte hPfNfQ"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="transform: scale(1.3);"><path fill="#D55C50" stroke="#D55C50" stroke-width="1.5" d="M8 2.75H5C3.75736 2.75 2.75 3.75736 2.75 5V8C2.75 9.24264 3.75736 10.25 5 10.25H8C9.24264 10.25 10.25 9.24264 10.25 8V5C10.25 3.75736 9.24264 2.75 8 2.75Z"></path><path fill="#4A6ED8" stroke="#4A6ED8" stroke-width="1.5" d="M19 2.75H16C14.7574 2.75 13.75 3.75736 13.75 5V8C13.75 9.24264 14.7574 10.25 16 10.25H19C20.2426 10.25 21.25 9.24264 21.25 8V5C21.25 3.75736 20.2426 2.75 19 2.75Z"></path><path fill="#FFB84D" stroke="#FFB84D" stroke-width="1.5" d="M19 13.75H16C14.7574 13.75 13.75 14.7574 13.75 16V19C13.75 20.2426 14.7574 21.25 16 21.25H19C20.2426 21.25 21.25 20.2426 21.25 19V16C21.25 14.7574 20.2426 13.75 19 13.75Z"></path><path fill="#5FCB90" stroke="#5FCB90" stroke-width="1.5" d="M8 13.75H5C3.75736 13.75 2.75 14.7574 2.75 16V19C2.75 20.2426 3.75736 21.25 5 21.25H8C9.24264 21.25 10.25 20.2426 10.25 19V16C10.25 14.7574 9.24264 13.75 8 13.75Z"></path></svg></a><div class="sc-ciaeSe DVuLn"><a href="https://accounts.mlx.institute/backprop" class="sc-kGxGMD hAfWYM"><img src="./Stathis_19_jan_24_solution_files/b1aed1e1-84db-47cd-93a5-18e5630a2cbe.png" class="sc-bAuVPU bDSSEI"></a></div></div></div></div><div class="sc-hQHGjd gzceFy"><div class="sc-dVwkvB jmdkNg"><div class="sc-foSUKL kpdjJS"><div class="sc-facpSu kPomUs"><p class="sc-bcPKhP sc-ZPwkx kESoAj gPbtgF">Solution</p></div><div class="sc-cxqeBy bsUqZC markdown-body"><h1>Stathis' Solution</h1>
+<p>I first create a conda environment</p>
+<pre><code class="hljs language-sh">conda create -n hacker python=3.11 
+conda activate hacker 
+</code></pre><p>I then install some packages
+<code>requirements.txt</code></p>
+<pre><code class="hljs language-text">prefect
+beautifulsoup4
+pandas
+httpx
+jupyter
+psycopg2-binary
+</code></pre><p>I then start the local prefect server</p>
+<pre><code class="hljs language-sh">prefect server start
+</code></pre><p>Then, I start a PostgreSQL database on docker</p>
+<pre><code class="hljs language-sh">docker run --name some-postgres -e POSTGRES_PASSWORD=mysecretpassword -p 5432:5432 -d postgres
+</code></pre><p>And then I write my code</p>
+<pre><code class="hljs language-python"><span class="hljs-keyword">import</span> httpx
+<span class="hljs-keyword">from</span> bs4 <span class="hljs-keyword">import</span> BeautifulSoup
+<span class="hljs-keyword">from</span> prefect <span class="hljs-keyword">import</span> flow, task
+<span class="hljs-keyword">import</span> psycopg2
+<span class="hljs-keyword">import</span> json
+
+<span class="hljs-meta">@task</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">get_questions</span>():
+  <span class="hljs-string">"""
+  Go to the Questions Home Page of Hacker News, 
+  and get all the links to all the questions visible
+  """</span>
+
+  <span class="hljs-comment">##### Make a Web Request and feed the HTML into a parser #####</span>
+  res = httpx.get(<span class="hljs-string">'https://news.ycombinator.com/ask'</span>)
+  soup = BeautifulSoup(res.text, <span class="hljs-string">'html.parser'</span>)
+
+
+  <span class="hljs-comment">##### Use the Parser to find all the 'tr' HTML tags that have a class of 'athing' #####</span>
+  trs = soup.find_all(<span class="hljs-string">'tr'</span>, class_=<span class="hljs-string">'athing'</span>)
+
+  <span class="hljs-comment">##### Create an empty list where we'll add all the links of each question, alongside the time information #####</span>
+  questions = [] 
+
+  <span class="hljs-comment">##### Iterate through each 'athing' &lt;tr&gt; #####</span>
+  <span class="hljs-keyword">for</span> athing_tr <span class="hljs-keyword">in</span> trs:
+    <span class="hljs-comment">##### Find the &lt;a&gt; tag within the &lt;span&gt; of class 'titleline' #####</span>
+    title_span = athing_tr.find(<span class="hljs-string">'span'</span>, class_=<span class="hljs-string">'titleline'</span>)
+    <span class="hljs-keyword">if</span> title_span:
+      link = title_span.find(<span class="hljs-string">'a'</span>)
+
+      <span class="hljs-comment">##### Find the next &lt;tr&gt; sibling, which should contain the time #####</span>
+      next_tr = athing_tr.find_next_sibling(<span class="hljs-string">'tr'</span>)
+      <span class="hljs-keyword">if</span> next_tr:
+        <span class="hljs-comment">##### Find the &lt;span&gt; with class 'age' #####</span>
+        time_span = next_tr.find(<span class="hljs-string">'span'</span>, class_=<span class="hljs-string">'age'</span>)
+        <span class="hljs-keyword">if</span> time_span:
+          time_text = time_span.text
+        <span class="hljs-keyword">else</span>:
+          time_text = <span class="hljs-string">"Time not found"</span>
+
+        <span class="hljs-comment">##### If you found the link, then return it alongside the question title and time text #####</span>
+        <span class="hljs-keyword">if</span> link:
+          <span class="hljs-built_in">print</span>(<span class="hljs-string">f"<span class="hljs-subst">{link.get(<span class="hljs-string">'href'</span>).split(<span class="hljs-string">'='</span>)[<span class="hljs-number">1</span>]}</span>, <span class="hljs-subst">{link.text}</span>, <span class="hljs-subst">{time_text}</span>"</span>)
+          questions.append({<span class="hljs-string">"link"</span>:link.get(<span class="hljs-string">'href'</span>), <span class="hljs-string">"text"</span>: {link.text}, <span class="hljs-string">"time"</span>: {time_text}})
+  <span class="hljs-keyword">return</span> questions
+
+<span class="hljs-meta">@task</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">filter_todays</span>(<span class="hljs-params">questions</span>):
+  <span class="hljs-string">"""
+  Filter out the questions that are older than 24 hours
+  """</span>
+  filtered_questions = []
+  <span class="hljs-keyword">for</span> q <span class="hljs-keyword">in</span> questions:
+    <span class="hljs-comment">##### On Hacker News, questions that are older than 24 hours are displayed in 'x number of days ago' #####</span>
+    <span class="hljs-comment">##### So as long as they don't contain the word 'day', then it's less than 24 hours                  #####</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-string">'day'</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> q[<span class="hljs-string">'time'</span>]:
+      filtered_questions.append(q)
+  <span class="hljs-keyword">return</span> filtered_questions
+
+<span class="hljs-meta">@flow(<span class="hljs-params">name=<span class="hljs-string">'Fetch Today\'s HN Questions'</span></span>)</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">fetch_questions</span>():
+  <span class="hljs-string">"""
+  This is the main flow that ties all the tasks together.
+  Here we get the questions, filter out the ones that are older than 24 hours
+  and then start a subflow that follows the link, and scrapes the body of the 
+  question and all the answers within it.
+  """</span>
+  questions = get_questions()
+  filtered_questions = filter_todays(questions)
+  <span class="hljs-keyword">for</span> q <span class="hljs-keyword">in</span> filtered_questions:
+    scrape_item_flow(q[<span class="hljs-string">"link"</span>].split(<span class="hljs-string">'='</span>)[<span class="hljs-number">1</span>])
+
+<span class="hljs-comment">######################################</span>
+<span class="hljs-comment">###########   SubFlow   ##############</span>
+<span class="hljs-comment">######################################</span>
+
+<span class="hljs-meta">@task</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">fetch_page_content</span>(<span class="hljs-params"><span class="hljs-built_in">id</span></span>):
+  <span class="hljs-string">"""
+  Fetch the HTML content of the page.
+  """</span>
+  url = <span class="hljs-string">f'https://news.ycombinator.com/item?id=<span class="hljs-subst">{<span class="hljs-built_in">id</span>}</span>'</span>
+  res = httpx.get(url)
+  <span class="hljs-keyword">return</span> BeautifulSoup(res.text, <span class="hljs-string">'html.parser'</span>)
+
+<span class="hljs-meta">@task</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">extract_title_and_body</span>(<span class="hljs-params">soup</span>):
+  <span class="hljs-string">"""
+  Extract the title and body from the page content.
+  """</span>
+  titleline = soup.find(<span class="hljs-string">'span'</span>, class_=<span class="hljs-string">'titleline'</span>)
+  toptext = soup.find(<span class="hljs-string">'div'</span>, class_=<span class="hljs-string">'toptext'</span>)
+  title = titleline.get_text() <span class="hljs-keyword">if</span> titleline <span class="hljs-keyword">else</span> <span class="hljs-string">'No title found'</span>
+  <span class="hljs-comment">##### Grab the text from toptext, without the HTML tags #####</span>
+  body = toptext.get_text(separator=<span class="hljs-string">'\n'</span>, strip=<span class="hljs-literal">True</span>) <span class="hljs-keyword">if</span> toptext <span class="hljs-keyword">else</span> <span class="hljs-string">'No body found'</span>
+  <span class="hljs-keyword">return</span> title, body
+
+<span class="hljs-meta">@task</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">get_comments</span>(<span class="hljs-params">soup, parent_tag=<span class="hljs-literal">None</span>, parent_indent=<span class="hljs-number">0</span></span>):
+  <span class="hljs-string">"""
+  Recursively extract comments and their nested replies.
+  """</span>
+  <span class="hljs-keyword">def</span> <span class="hljs-title function_">parse_comment</span>(<span class="hljs-params">tag</span>):
+    <span class="hljs-string">"""
+    Parse a single comment and return its text, excluding the 'reply' link.
+    """</span>
+    comment_div = tag.find(<span class="hljs-string">'div'</span>, class_=<span class="hljs-string">'comment'</span>)
+    <span class="hljs-keyword">if</span> comment_div:
+      <span class="hljs-comment">##### Find and extract the 'reply' link, if present #####</span>
+      reply_link = comment_div.find(<span class="hljs-string">'a'</span>, string=<span class="hljs-string">'reply'</span>)
+      <span class="hljs-keyword">if</span> reply_link:
+        reply_link.extract()
+      <span class="hljs-keyword">return</span> comment_div.get_text(strip=<span class="hljs-literal">True</span>)
+
+  <span class="hljs-keyword">def</span> <span class="hljs-title function_">recursive_get_comments</span>(<span class="hljs-params">parent_tag, parent_indent</span>):
+    comments = []
+    start_tag = parent_tag.find_next_sibling(<span class="hljs-string">'tr'</span>, class_=<span class="hljs-string">'comtr'</span>) <span class="hljs-keyword">if</span> parent_tag <span class="hljs-keyword">else</span> soup.find(<span class="hljs-string">'tr'</span>, class_=<span class="hljs-string">'comtr'</span>)
+    next_comment = start_tag
+
+    <span class="hljs-keyword">while</span> next_comment:
+      indent = <span class="hljs-built_in">int</span>(next_comment.td.img[<span class="hljs-string">'width'</span>])
+      <span class="hljs-keyword">if</span> parent_tag <span class="hljs-keyword">and</span> indent &lt;= parent_indent:
+        <span class="hljs-keyword">break</span>  <span class="hljs-comment"># This comment is not a child of the parent_tag</span>
+      comment_text = parse_comment(next_comment)
+      replies = recursive_get_comments(next_comment, indent)
+      comments.append({<span class="hljs-string">'text'</span>: comment_text, <span class="hljs-string">'replies'</span>: replies})
+      next_comment = next_comment.find_next_sibling(<span class="hljs-string">'tr'</span>, class_=<span class="hljs-string">'comtr'</span>)
+
+    <span class="hljs-keyword">return</span> comments
+
+  <span class="hljs-comment">##### Start the recursion with the provided parameters #####</span>
+  <span class="hljs-keyword">return</span> recursive_get_comments(parent_tag, parent_indent)
+
+<span class="hljs-meta">@task</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">create_table</span>(<span class="hljs-params">conn_params</span>):
+  <span class="hljs-string">"""
+  Task to create a table if it doesn't exist.
+  """</span>
+  <span class="hljs-keyword">try</span>:
+    <span class="hljs-keyword">with</span> psycopg2.connect(conn_params) <span class="hljs-keyword">as</span> conn:
+      <span class="hljs-keyword">with</span> conn.cursor() <span class="hljs-keyword">as</span> cur:
+        create_table_query = <span class="hljs-string">"""
+        CREATE TABLE IF NOT EXISTS questions (
+            id SERIAL PRIMARY KEY,
+            title VARCHAR(255),
+            body TEXT,
+            comments JSONB
+        );
+        """</span>
+        cur.execute(create_table_query)
+        conn.commit()
+  <span class="hljs-keyword">except</span> Exception <span class="hljs-keyword">as</span> e:
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">f"Error creating table: <span class="hljs-subst">{e}</span>"</span>)
+
+<span class="hljs-meta">@task</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">insert_question</span>(<span class="hljs-params">conn_params, question</span>):
+  <span class="hljs-string">"""
+  Task to insert a new question into the table.
+  """</span>
+  <span class="hljs-keyword">try</span>:
+    <span class="hljs-keyword">with</span> psycopg2.connect(conn_params) <span class="hljs-keyword">as</span> conn:
+      <span class="hljs-keyword">with</span> conn.cursor() <span class="hljs-keyword">as</span> cur:
+          insert_query = <span class="hljs-string">"""
+          INSERT INTO questions (title, body, comments) VALUES (%s, %s, %s)
+          """</span>
+          <span class="hljs-comment">##### Convert the list of dictionaries to a JSON string before inserting #####</span>
+          comments_json = json.dumps(question[<span class="hljs-string">'comments'</span>])
+          cur.execute(insert_query, (question[<span class="hljs-string">'title'</span>], question[<span class="hljs-string">'body'</span>], comments_json))
+          conn.commit()
+  <span class="hljs-keyword">except</span> Exception <span class="hljs-keyword">as</span> e:
+    <span class="hljs-built_in">print</span>(<span class="hljs-string">f"Error inserting question: <span class="hljs-subst">{e}</span>"</span>)
+
+
+<span class="hljs-meta">@flow(<span class="hljs-params">flow_run_name=<span class="hljs-string">"Scraping question {id}"</span></span>)</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">scrape_item_flow</span>(<span class="hljs-params"><span class="hljs-built_in">id</span></span>):
+  <span class="hljs-string">"""
+  The main flow that ties everything together
+  """</span>
+  soup = fetch_page_content(<span class="hljs-built_in">id</span>)
+  title, body = extract_title_and_body(soup)
+  comments = get_comments(soup)
+  question = {<span class="hljs-string">"title"</span>: title, <span class="hljs-string">"body"</span>: body, <span class="hljs-string">"comments"</span>: comments}
+
+  <span class="hljs-comment">##### The string that we use to connect to the PostgreSQL #####</span>
+  pg_con = <span class="hljs-string">'postgres://postgres:mysecretpassword@localhost:5432/postgres'</span>
+  create_table(pg_con)
+  insert_question(pg_con, question)
+
+
+<span class="hljs-comment">##### Calling the funtion so that when running the file it runs the flow. If this was a deployment then calling the function isn't needed #####</span>
+fetch_questions()
+</code></pre><p>Lastly, I make a deployment out of it</p>
+<pre><code class="hljs language-sh">prefect deploy flow.py:fetch_questions 
+</code></pre></div></div></div></div></div><script>const OriginalResizeObserver=window.ResizeObserver;window.ResizeObserver=function(e){return new OriginalResizeObserver(((r,i)=>{window.requestAnimationFrame((()=>{e(r,i)}))}))};for(let e in OriginalResizeObserver)OriginalResizeObserver.hasOwnProperty(e)&&(window.ResizeObserver[e]=OriginalResizeObserver[e])</script><script>var require={paths:{vs:"https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.39.0/min/vs"}}</script><script src="./Stathis_19_jan_24_solution_files/loader.js"></script><script src="./Stathis_19_jan_24_solution_files/editor.main.nls.js"></script><script src="./Stathis_19_jan_24_solution_files/editor.main.js"></script><script type="module">import*as pdf from"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.269/pdf.min.mjs";pdf.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.269/pdf.worker.min.mjs",window.pdf=pdf</script></body></html>
