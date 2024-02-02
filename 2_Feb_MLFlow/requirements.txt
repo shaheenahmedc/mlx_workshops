@@ -1,0 +1,13 @@
+#### TRAIN ####
+numpy
+scikit-learn
+tqdm
+mlflow
+
+#### OPTIONAL ####
+jupyter
+
+#### DEPLOY ####
+httpx
+fastapi
+uvicorn

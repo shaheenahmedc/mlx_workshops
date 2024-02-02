@@ -1,0 +1,15 @@
+artifact_uri: mlflow-artifacts:/912598759279177923/db14796dc072463984d1f6c011e3c75f/artifacts
+end_time: 1706889610904
+entry_point_name: ''
+experiment_id: '912598759279177923'
+lifecycle_stage: active
+run_id: db14796dc072463984d1f6c011e3c75f
+run_name: clumsy-horse-148
+run_uuid: db14796dc072463984d1f6c011e3c75f
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1706889552973
+status: 4
+tags: []
+user_id: shaheen.ahmed-chowd

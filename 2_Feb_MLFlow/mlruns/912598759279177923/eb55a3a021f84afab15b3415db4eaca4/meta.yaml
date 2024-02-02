@@ -1,0 +1,15 @@
+artifact_uri: mlflow-artifacts:/912598759279177923/eb55a3a021f84afab15b3415db4eaca4/artifacts
+end_time: 1706889840424
+entry_point_name: ''
+experiment_id: '912598759279177923'
+lifecycle_stage: active
+run_id: eb55a3a021f84afab15b3415db4eaca4
+run_name: popular-smelt-954
+run_uuid: eb55a3a021f84afab15b3415db4eaca4
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1706889656536
+status: 4
+tags: []
+user_id: shaheen.ahmed-chowd

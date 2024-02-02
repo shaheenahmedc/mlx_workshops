@@ -1,0 +1,14 @@
+aliases: []
+creation_timestamp: 1706890915529
+current_stage: None
+description: ''
+last_updated_timestamp: 1706890915529
+name: test_lang_classification_model
+run_id: 32f94ebc42b44a0e973f59f66c66d72e
+run_link: ''
+source: mlflow-artifacts:/912598759279177923/32f94ebc42b44a0e973f59f66c66d72e/artifacts/model
+status: READY
+status_message: null
+storage_location: mlflow-artifacts:/912598759279177923/32f94ebc42b44a0e973f59f66c66d72e/artifacts/model
+user_id: null
+version: 1

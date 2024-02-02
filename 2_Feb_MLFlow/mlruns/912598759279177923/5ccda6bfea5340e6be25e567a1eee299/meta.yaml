@@ -1,0 +1,15 @@
+artifact_uri: mlflow-artifacts:/912598759279177923/5ccda6bfea5340e6be25e567a1eee299/artifacts
+end_time: 1706890607851
+entry_point_name: ''
+experiment_id: '912598759279177923'
+lifecycle_stage: active
+run_id: 5ccda6bfea5340e6be25e567a1eee299
+run_name: trusting-croc-108
+run_uuid: 5ccda6bfea5340e6be25e567a1eee299
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1706890462842
+status: 3
+tags: []
+user_id: shaheen.ahmed-chowd
