@@ -1,0 +1,5 @@
+yfinance
+jupyter
+prefect
+streamlit
+influxdb-client
